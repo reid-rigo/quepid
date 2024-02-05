@@ -35,14 +35,18 @@ class Book < ApplicationRecord
   belongs_to :selection_strategy
   belongs_to :scorer
   has_many :query_doc_pairs, dependent: :destroy, autosave: true
-
   has_many   :judgements,
              through:   :query_doc_pairs,
              dependent: :destroy
+  has_many   :judges, -> { distinct },
+             through:    :judgements,
+             class_name: 'User',
+             source:     :user
 
   # has_many :judges, -> { distinct }, through: :judgements, class_name: 'User', source: :user
 
   has_many :cases, dependent: :nullify
+  has_many :ratings, through: :cases
 
   has_many :rated_query_doc_pairs, -> { has_judgements },
            class_name: 'QueryDocPair',
@@ -62,10 +66,8 @@ class Book < ApplicationRecord
   # Scopes
   scope :for_user_via_teams, ->(user) {
     joins('
-      LEFT OUTER JOIN `teams_books` ON `teams_books`.`book_id` = `books`.`id`
-      LEFT OUTER JOIN `teams` ON `teams`.`id` = `teams_books`.`team_id`
-      LEFT OUTER JOIN `teams_members` ON `teams_members`.`team_id` = `teams`.`id`
-      LEFT OUTER JOIN `users` ON `users`.`id` = `teams_members`.`member_id`
+      JOIN `teams_books` ON `teams_books`.`book_id` = `books`.`id`
+      JOIN `teams_members` ON `teams_members`.`team_id` = `teams_books`.`team_id`
     ').where('
         `teams_members`.`member_id` = ?
     ', user.id)
@@ -73,14 +75,11 @@ class Book < ApplicationRecord
   }
 
   scope :for_user_directly_owned, ->(user) {
-    where('
-        `books`.`owner_id` = ?
-    ',  user.id)
+    where(owner: user)
   }
 
   scope :for_user, ->(user) {
-    ids = for_user_via_teams(user).pluck(:id) + for_user_directly_owned(user).pluck(:id)
-    where(id: ids.uniq)
+    for_user_directly_owned(user).or(where(id: for_user_via_teams(user)))
   }
 
   private

@@ -46,7 +46,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_01_171336) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
-  create_table "annotations", id: :integer, charset: "utf8mb3", force: :cascade do |t|
+  create_table "annotations", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
     t.text "message"
     t.string "source"
     t.integer "user_id"
@@ -70,7 +70,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_01_171336) do
     t.boolean "live", default: false
   end
 
-  create_table "api_keys", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "api_keys", charset: "utf8mb4", collation: "utf8mb4_unicode_520_ci", force: :cascade do |t|
     t.integer "user_id"
     t.string "token_digest", null: false
     t.datetime "created_at", null: false
@@ -98,7 +98,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_01_171336) do
     t.index ["selection_strategy_id"], name: "index_books_on_selection_strategy_id"
   end
 
-  create_table "case_metadata", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "case_metadata", id: :integer, charset: "latin1", collation: "latin1_swedish_ci", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "case_id", null: false
     t.datetime "last_viewed_at", precision: nil
@@ -106,7 +106,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_01_171336) do
     t.index ["user_id", "case_id"], name: "case_metadata_user_id_case_id_index"
   end
 
-  create_table "case_scores", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "case_scores", id: :integer, charset: "latin1", collation: "latin1_swedish_ci", force: :cascade do |t|
     t.integer "case_id"
     t.integer "user_id"
     t.integer "try_id"
@@ -122,7 +122,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_01_171336) do
     t.index ["user_id"], name: "user_id"
   end
 
-  create_table "cases", id: :integer, charset: "utf8mb3", force: :cascade do |t|
+  create_table "cases", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
     t.string "case_name", limit: 191
     t.integer "last_try_number"
     t.integer "owner_id"
@@ -132,11 +132,12 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_01_171336) do
     t.datetime "updated_at", precision: nil, null: false
     t.integer "book_id"
     t.boolean "public"
-    t.json "options"
+    t.text "options", size: :long, collation: "utf8mb4_bin"
     t.index ["owner_id"], name: "user_id"
+    t.check_constraint "json_valid(`options`)", name: "options"
   end
 
-  create_table "curator_variables", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "curator_variables", id: :integer, charset: "latin1", collation: "latin1_swedish_ci", force: :cascade do |t|
     t.string "name", limit: 500
     t.float "value"
     t.integer "try_id"
@@ -157,7 +158,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_01_171336) do
     t.index ["user_id", "query_doc_pair_id"], name: "index_judgements_on_user_id_and_query_doc_pair_id"
   end
 
-  create_table "permissions", id: :integer, charset: "utf8mb3", force: :cascade do |t|
+  create_table "permissions", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
     t.integer "user_id"
     t.string "model_type", null: false
     t.string "action", null: false
@@ -166,7 +167,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_01_171336) do
     t.datetime "updated_at", precision: nil, null: false
   end
 
-  create_table "queries", id: :integer, charset: "utf8mb3", force: :cascade do |t|
+  create_table "queries", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
     t.bigint "arranged_next"
     t.bigint "arranged_at"
     t.string "query_text", limit: 500
@@ -194,7 +195,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_01_171336) do
     t.index ["query_text", "doc_id", "book_id"], name: "unique_query_doc_pair", unique: true
   end
 
-  create_table "ratings", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "ratings", id: :integer, charset: "latin1", collation: "latin1_swedish_ci", force: :cascade do |t|
     t.string "doc_id", limit: 500
     t.float "rating"
     t.integer "query_id"
@@ -217,7 +218,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_01_171336) do
     t.boolean "communal", default: false
   end
 
-  create_table "search_endpoints", charset: "utf8mb3", force: :cascade do |t|
+  create_table "search_endpoints", charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
     t.string "name"
     t.integer "owner_id"
     t.string "search_engine", limit: 50
@@ -230,7 +231,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_01_171336) do
     t.string "basic_auth_credential"
     t.text "mapper_code"
     t.boolean "proxy_requests", default: false
-    t.json "options"
+    t.text "options", size: :long, collation: "utf8mb4_bin"
+    t.check_constraint "json_valid(`options`)", name: "options"
   end
 
   create_table "selection_strategies", charset: "utf8mb3", collation: "utf8mb3_unicode_ci", force: :cascade do |t|
@@ -240,17 +242,17 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_01_171336) do
     t.string "description"
   end
 
-  create_table "snapshot_docs", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "snapshot_docs", id: :integer, charset: "latin1", collation: "latin1_swedish_ci", force: :cascade do |t|
     t.string "doc_id", limit: 500
     t.integer "position"
     t.integer "snapshot_query_id"
-    t.text "explain", size: :medium, collation: "utf8mb4_0900_ai_ci"
+    t.text "explain", size: :medium, collation: "utf8mb4_unicode_520_ci"
     t.boolean "rated_only", default: false
-    t.text "fields", size: :medium, collation: "utf8mb4_0900_ai_ci"
+    t.text "fields", size: :medium, collation: "utf8mb4_unicode_520_ci"
     t.index ["snapshot_query_id"], name: "snapshot_query_id"
   end
 
-  create_table "snapshot_queries", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "snapshot_queries", id: :integer, charset: "latin1", collation: "latin1_swedish_ci", force: :cascade do |t|
     t.integer "query_id"
     t.integer "snapshot_id"
     t.float "score"
@@ -260,7 +262,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_01_171336) do
     t.index ["snapshot_id"], name: "snapshot_id"
   end
 
-  create_table "snapshots", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "snapshots", id: :integer, charset: "latin1", collation: "latin1_swedish_ci", force: :cascade do |t|
     t.string "name", limit: 250
     t.datetime "created_at", precision: nil
     t.integer "case_id"
@@ -272,7 +274,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_01_171336) do
     t.index ["try_id"], name: "index_snapshots_on_try_id"
   end
 
-  create_table "teams", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "teams", id: :integer, charset: "latin1", collation: "latin1_swedish_ci", force: :cascade do |t|
     t.string "name", collation: "utf8mb3_bin"
     t.integer "owner_id", null: false
     t.datetime "created_at", precision: nil, null: false
@@ -286,33 +288,33 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_01_171336) do
     t.bigint "team_id", null: false
   end
 
-  create_table "teams_cases", primary_key: ["case_id", "team_id"], charset: "latin1", force: :cascade do |t|
+  create_table "teams_cases", primary_key: ["case_id", "team_id"], charset: "latin1", collation: "latin1_swedish_ci", force: :cascade do |t|
     t.integer "case_id", null: false
     t.integer "team_id", null: false
     t.index ["case_id"], name: "index_teams_cases_on_case_id"
     t.index ["team_id"], name: "index_teams_cases_on_team_id"
   end
 
-  create_table "teams_members", primary_key: ["member_id", "team_id"], charset: "latin1", force: :cascade do |t|
+  create_table "teams_members", primary_key: ["member_id", "team_id"], charset: "latin1", collation: "latin1_swedish_ci", force: :cascade do |t|
     t.integer "member_id", null: false
     t.integer "team_id", null: false
     t.index ["member_id"], name: "index_teams_members_on_member_id"
     t.index ["team_id"], name: "index_teams_members_on_team_id"
   end
 
-  create_table "teams_scorers", primary_key: ["scorer_id", "team_id"], charset: "latin1", force: :cascade do |t|
+  create_table "teams_scorers", primary_key: ["scorer_id", "team_id"], charset: "latin1", collation: "latin1_swedish_ci", force: :cascade do |t|
     t.integer "scorer_id", null: false
     t.integer "team_id", null: false
     t.index ["scorer_id"], name: "index_teams_scorers_on_scorer_id"
     t.index ["team_id"], name: "index_teams_scorers_on_team_id"
   end
 
-  create_table "teams_search_endpoints", id: false, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "teams_search_endpoints", id: false, charset: "utf8mb4", collation: "utf8mb4_unicode_520_ci", force: :cascade do |t|
     t.bigint "search_endpoint_id", null: false
     t.bigint "team_id", null: false
   end
 
-  create_table "tries", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "tries", id: :integer, charset: "latin1", collation: "latin1_swedish_ci", force: :cascade do |t|
     t.integer "try_number"
     t.string "query_params", limit: 20000
     t.integer "case_id"
@@ -329,7 +331,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_01_171336) do
     t.index ["try_number"], name: "ix_queryparam_tryNo"
   end
 
-  create_table "users", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "users", id: :integer, charset: "latin1", collation: "latin1_swedish_ci", force: :cascade do |t|
     t.string "email", limit: 80
     t.string "password", limit: 120
     t.datetime "agreed_time", precision: nil

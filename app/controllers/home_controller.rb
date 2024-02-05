@@ -12,7 +12,7 @@ class HomeController < ApplicationController
     # Run the prophet!
     @prophet_case_data = {}
     @most_recent_cases.each do |kase|
-      data = kase.scores.sampled(kase.id, 25).collect do |score|
+      data = kase.scores.sampled(25).select(:created_at, :score).collect do |score|
         { ds: score.created_at.to_date.to_fs(:db), y: score.score, datetime: score.created_at.to_date }
       end.uniq
       # warning! blunt filter below!

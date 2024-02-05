@@ -8,7 +8,7 @@
 #  archived        :boolean
 #  case_name       :string(191)
 #  last_try_number :integer
-#  options         :json
+#  options         :text(4294967295)
 #  public          :boolean
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
@@ -58,7 +58,13 @@ class Case < ApplicationRecord
 
   has_many   :scores, -> { order(updated_at: :desc) },
              dependent:  :destroy,
-             inverse_of: :case
+             inverse_of: :case do
+               # Due to a bug, we have cases with 60,000+ scores, which kills our performance.
+               # This is a terrible workaround till we get that problem fixed.
+               def sampled count
+                 order('RAND()').limit(count)
+               end
+             end
 
   has_many   :snapshots,
              dependent: :destroy
@@ -86,24 +92,19 @@ class Case < ApplicationRecord
 
   scope :for_user_via_teams, ->(user) {
     joins('
-      LEFT OUTER JOIN `teams_cases` ON `teams_cases`.`case_id` = `cases`.`id`
-      LEFT OUTER JOIN `teams` ON `teams`.`id` = `teams_cases`.`team_id`
-      LEFT OUTER JOIN `teams_members` ON `teams_members`.`team_id` = `teams`.`id`
-      LEFT OUTER JOIN `users` ON `users`.`id` = `teams_members`.`member_id`
+      JOIN `teams_cases` ON `teams_cases`.`case_id` = `cases`.`id`
+      JOIN `teams_members` ON `teams_members`.`team_id` = `teams_cases`.`team_id`
     ').where('
         `teams_members`.`member_id` = ?
     ', user.id)
   }
 
   scope :for_user_directly_owned, ->(user) {
-    where('
-        `cases`.`owner_id` = ?
-    ',  user.id)
+    where(owner: user)
   }
 
   scope :for_user, ->(user) {
-    ids = for_user_via_teams(user).pluck(:id) + for_user_directly_owned(user).pluck(:id)
-    where(id: ids.uniq)
+    for_user_directly_owned(user).or(where(id: for_user_via_teams(user)))
   }
 
   scope :public_cases, -> { where(public: true) }
@@ -193,6 +194,15 @@ class Case < ApplicationRecord
 
   def public_id
     Rails.application.message_verifier('magic').generate(id)
+  end
+
+  # Optimized method to retrieve all doc ratings a single time
+  # Returns [5424, [{"query_id"=>5424, "doc_id"=>"l_21426", "rating"=>1.0}], ...]
+  def doc_ratings_by_query
+    @doc_ratings_by_query ||= begin
+      result = connection.select_all(ratings.select(:query_id, :doc_id, :rating).to_sql)
+      result.group_by { |r| r['query_id'] }
+    end
   end
 
   private

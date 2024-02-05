@@ -51,12 +51,14 @@ gem 'sidekiq'
 gem 'terser'
 gem 'thor'
 gem 'turbolinks', '~> 5'
+gem 'turbo-rails'
 gem 'vega', '~> 0.3.0'
 
 group :development, :test do
   gem 'annotate'
   gem 'bullet'
   gem 'memory_profiler'
+  gem 'dotenv-rails'
 end
 
 group :development do

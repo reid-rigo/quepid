@@ -35,10 +35,9 @@ module Authentication
         return
       end
 
-      if session[:current_user_id] && User.exists?(session[:current_user_id])
+      if session[:current_user_id]
         @current_user = User.find(session[:current_user_id])
-      else
-        clear_user_session
+        clear_user_session unless @current_user
       end
     end
 

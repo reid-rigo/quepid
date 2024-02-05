@@ -14,7 +14,7 @@ module Analytics
     def vega_data
       @scores = []
       recent_cases(8).each do |kase|
-        @scores << kase.scores.sampled(kase.id, 100)
+        @scores << kase.scores.sampled(100)
       end
       @scores.flatten!
     end

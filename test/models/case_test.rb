@@ -8,7 +8,7 @@
 #  archived        :boolean
 #  case_name       :string(191)
 #  last_try_number :integer
-#  options         :json
+#  options         :text(4294967295)
 #  public          :boolean
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
