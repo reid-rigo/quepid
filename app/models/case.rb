@@ -8,7 +8,7 @@
 #  archived        :boolean
 #  case_name       :string(191)
 #  last_try_number :integer
-#  options         :text(4294967295)
+#  options         :json
 #  public          :boolean
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
@@ -88,24 +88,9 @@ class Case < ApplicationRecord
   end
 
   # Scopes
+  include ForUserScope
+
   scope :not_archived, -> { where('`cases`.`archived` = false OR `cases`.`archived` IS NULL') }
-
-  scope :for_user_via_teams, ->(user) {
-    joins('
-      JOIN `teams_cases` ON `teams_cases`.`case_id` = `cases`.`id`
-      JOIN `teams_members` ON `teams_members`.`team_id` = `teams_cases`.`team_id`
-    ').where('
-        `teams_members`.`member_id` = ?
-    ', user.id)
-  }
-
-  scope :for_user_directly_owned, ->(user) {
-    where(owner: user)
-  }
-
-  scope :for_user, ->(user) {
-    for_user_directly_owned(user).or(where(id: for_user_via_teams(user)))
-  }
 
   scope :public_cases, -> { where(public: true) }
 

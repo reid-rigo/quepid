@@ -64,23 +64,7 @@ class Book < ApplicationRecord
   after_destroy :delete_attachments
 
   # Scopes
-  scope :for_user_via_teams, ->(user) {
-    joins('
-      JOIN `teams_books` ON `teams_books`.`book_id` = `books`.`id`
-      JOIN `teams_members` ON `teams_members`.`team_id` = `teams_books`.`team_id`
-    ').where('
-        `teams_members`.`member_id` = ?
-    ', user.id)
-      .order(name: :desc)
-  }
-
-  scope :for_user_directly_owned, ->(user) {
-    where(owner: user)
-  }
-
-  scope :for_user, ->(user) {
-    for_user_directly_owned(user).or(where(id: for_user_via_teams(user)))
-  }
+  include ForUserScope
 
   private
 

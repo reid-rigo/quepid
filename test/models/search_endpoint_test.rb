@@ -12,7 +12,7 @@
 #  endpoint_url          :string(500)
 #  mapper_code           :text(65535)
 #  name                  :string(255)
-#  options               :text(4294967295)
+#  options               :json
 #  proxy_requests        :boolean          default(FALSE)
 #  search_engine         :string(50)
 #  created_at            :datetime         not null
